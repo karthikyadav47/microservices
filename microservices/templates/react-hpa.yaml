@@ -1,0 +1,32 @@
+{{- if .Values.react.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "microservices.fullname" . }}-{{ .Values.react.name }}
+  labels:
+    {{- include "microservices.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "microservices.fullname" . }}
+  minReplicas: {{ .Values.react.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.react.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.react.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.react.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.react.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.react.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}

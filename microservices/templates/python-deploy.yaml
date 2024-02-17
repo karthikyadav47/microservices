@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "microservices.fullname" . }}-{{ .Values.python.name }}
+  labels:
+    {{- include "microservices.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.python.autoscaling.enabled }}
+  replicas: {{ .Values.python.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "microservices.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.python.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "microservices.selectorLabels" . | nindent 8 }}
+        {{- with .Values.python.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.python.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ .Values.python.serviceAccountName }}
+      securityContext:
+        {{- toYaml .Values.python.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-{{.Values.python.name}}
+          securityContext:
+            {{- toYaml .Values.python.securityContext | nindent 12 }}
+          image: "{{ .Values.python.image.repository }}:{{ .Values.python.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.python.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.python.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.python.resources | nindent 12 }}
+          {{- with .Values.python.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.python.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.python.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.python.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.python.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
