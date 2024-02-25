@@ -10,7 +10,7 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "microservices.selectorLabels" . | nindent 6 }}
+      {{- include "microservices.pythonLabel" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.python.podAnnotations }}
@@ -18,7 +18,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "microservices.selectorLabels" . | nindent 8 }}
+        {{- include "microservices.pythonLabel" . | nindent 8 }}
         {{- with .Values.python.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
